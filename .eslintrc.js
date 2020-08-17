@@ -10,7 +10,9 @@ module.exports = {
 
   rules: {
     semi: ['error', 'always'],
-    quotes: ['error', 'double'],
+    quotes: ['error', 'single'],
+    'comma-dangle': ['warn', 'never'],
+    'space-before-function-paren': 0,
     'no-console':
       process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-debugger':
