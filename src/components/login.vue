@@ -2,7 +2,7 @@
   <div class="login_container">
     <div class="login_box">
       <div class="avatar_box">
-        <img src="./../assets/logo.png" alt="" />
+        <img src="./../assets/logo.png" alt />
       </div>
       <el-form
         :model="loginForm"
@@ -12,26 +12,14 @@
         class="form"
       >
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            placeholder=""
-            prefix-icon="el-icon-user"
-          ></el-input>
+          <el-input v-model="loginForm.username" placeholder prefix-icon="el-icon-user"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input
-            v-model="loginForm.password"
-            placeholder=""
-            prefix-icon="el-icon-lock"
-          ></el-input>
+          <el-input v-model="loginForm.password" placeholder prefix-icon="el-icon-lock"></el-input>
         </el-form-item>
         <el-form-item class="btns">
-          <el-button type="primary" plain @click="submit('loginForm')"
-            >submit</el-button
-          >
-          <el-button type="info" plain @click="reset('loginForm')"
-            >reset</el-button
-          >
+          <el-button type="primary" plain @click="submit('loginForm')">submit</el-button>
+          <el-button type="info" plain @click="reset('loginForm')">reset</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -39,8 +27,10 @@
 </template>
 
 <script>
+import { httpMixin } from '@/mixins/globalMixin';
 export default {
   name: 'login',
+  mixins: [httpMixin],
   data() {
     const checkPWD = (rule, value, callback) => {
       const inputVal = value.trim();
@@ -53,8 +43,8 @@ export default {
     };
     return {
       loginForm: {
-        username: '',
-        password: '',
+        username: 'admin',
+        password: '123456',
       },
       loginRules: {
         username: [
@@ -76,9 +66,14 @@ export default {
   },
   methods: {
     submit(formName) {
-      this.$refs[formName].validate(valid => {
+      this.$refs[formName].validate((valid) => {
         if (valid) {
-          console.log('submit!');
+          this.$http.post('login', this.loginForm).then((res) => {
+            this.handleResponse(res, () => {
+              window.sessionStorage.setItem('token', res.data.token);
+              this.$router.push('/home');
+            });
+          });
         } else {
           console.log('error submit!!');
           return false;
