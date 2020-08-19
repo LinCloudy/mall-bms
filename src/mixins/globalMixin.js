@@ -6,27 +6,27 @@ export const httpMixin = {
         showClose: true,
         type: 'error',
         message: msg,
-        duration: 0,
+        duration: 0
       });
     },
     showSuccessMessage(msg) {
       this.$message({
         type: 'success',
         message: msg,
-        duration: 2000,
+        duration: 2000
       });
     },
     handleResponse(res, callback) {
       if (res.meta.status === 200) {
         this.$message({
-          message: '操作成功',
+          message: res.meta.msg ? res.meta.msg : '操作成功',
           type: 'success',
           duration: 2000,
           onClose: () => {
             if (callback && typeof callback === 'function') {
               callback();
             }
-          },
+          }
         });
       } else {
         if (res.meta.msg) {
@@ -35,6 +35,6 @@ export const httpMixin = {
           this.showErrorMessage('操作失败');
         }
       }
-    },
-  },
+    }
+  }
 };

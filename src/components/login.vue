@@ -44,31 +44,32 @@ export default {
     return {
       loginForm: {
         username: 'admin',
-        password: '123456',
+        password: '123456'
       },
       loginRules: {
         username: [
           {
             required: true,
             message: '请输入用户名',
-            trigger: ['change', 'blur'],
-          },
+            trigger: ['change', 'blur']
+          }
         ],
         password: [
           {
             required: true,
             validator: checkPWD,
-            trigger: ['change', 'blur'],
-          },
-        ],
-      },
+            trigger: ['change', 'blur']
+          }
+        ]
+      }
     };
   },
   methods: {
     submit(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.$http.post('login', this.loginForm).then((res) => {
+          this.$http.post('login', this.loginForm).then((response) => {
+            const { data: res } = response;
             this.handleResponse(res, () => {
               window.sessionStorage.setItem('token', res.data.token);
               this.$router.push('/home');
@@ -82,8 +83,8 @@ export default {
     },
     reset(formName) {
       this.$refs[formName].resetFields();
-    },
-  },
+    }
+  }
 };
 </script>
 
