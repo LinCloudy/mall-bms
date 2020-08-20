@@ -5,15 +5,20 @@
       <el-button type="info" plain @click="logout">logout</el-button>
     </el-header>
     <el-container>
-      <el-aside style="width: 200px">
+      <el-aside :width="isCollapsed ? '64px' : '200px'">
+        <div class="toggle-button" @click="toggleCollapse">|||</div>
         <el-menu
-          default-active="2"
+          :default-active="defaultActive"
           class="el-menu-vertical-demo"
           @open="handleOpen"
           @close="handleClose"
           background-color="#e3f2fe"
-          text-color="black"
-          active-text-color="skyblue"
+          text-color="#303133"
+          active-text-color="#409EFF"
+          unique-opened
+          :collapse="isCollapsed"
+          :collapse-transition="false"
+          router
         >
           <!-- 一级菜单 -->
           <el-submenu :index="item.id + ''" v-for="item in menuList" :key="item.id">
@@ -25,9 +30,10 @@
 
             <!-- 二级菜单 -->
             <el-menu-item
-              :index="subItem.id + ''"
+              :index="'/' + subItem.path"
               v-for="subItem in item.children"
               :key="subItem.id"
+              @click="saveNavStatus('/' + subItem.path)"
             >
               <template slot="title">
                 <i class="el-icon-menu"></i>
@@ -37,7 +43,9 @@
           </el-submenu>
         </el-menu>
       </el-aside>
-      <el-main>Main</el-main>
+      <el-main>
+        <router-view></router-view>
+      </el-main>
     </el-container>
   </el-container>
 </template>
@@ -49,17 +57,20 @@ export default {
   data() {
     return {
       menuList: [],
+      defaultActive: '',
       iconObj: {
         125: 'el-icon-s-custom',
         103: 'el-icon-s-management',
         101: 'el-icon-s-goods',
         102: 'el-icon-s-order',
         145: 'el-icon-s-platform'
-      }
+      },
+      isCollapsed: false
     };
   },
   created() {
     this.getMenuList();
+    this.defaultActive = window.sessionStorage.getItem('activePath');
   },
   methods: {
     getMenuList() {
@@ -76,6 +87,13 @@ export default {
     logout() {
       window.sessionStorage.clear();
       this.$router.push('/login');
+    },
+    toggleCollapse() {
+      this.isCollapsed = !this.isCollapsed;
+    },
+    saveNavStatus(activePath) {
+      window.sessionStorage.setItem('activePath', activePath);
+      this.defaultActive = activePath;
     },
     handleOpen(key, keyPath) {
       console.log(key, keyPath);
@@ -99,8 +117,20 @@ export default {
 }
 .el-aside {
   background-color: #e3f2fe;
+
+  .el-menu {
+    border-right: none;
+  }
 }
 .el-main {
-  background-color: whitesmoke;
+  background-color: Transparent;
+}
+.toggle-button {
+  line-height: 24px;
+  font-size: 12px;
+  background-color: #e3f2fe;
+  text-align: center;
+  letter-spacing: 0.2em;
+  cursor: pointer;
 }
 </style>
