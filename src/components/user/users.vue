@@ -20,9 +20,36 @@
         </el-col>
       </el-row>
 
-      <el-table>
-        <el-table-column></el-table-column>
+      <el-table :data="userList" border style="width: 100%">
+        <el-table-column type="index" width="60"></el-table-column>
+        <el-table-column prop="username" label="姓名" width="180"></el-table-column>
+        <el-table-column prop="email" label="邮箱" width="180"></el-table-column>
+        <el-table-column prop="mobile" label="电话" width="180"></el-table-column>
+        <el-table-column prop="role_name" label="角色" width="180"></el-table-column>
+        <el-table-column prop="mg_state" label="状态" width="180">
+          <template slot-scope="scope">
+            <el-switch v-model="scope.row.mg_state"></el-switch>
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="180">
+          <template>
+            <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
+            <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
+            <el-tooltip effect="light" content="分配角色" placement="top" :enterable="false">
+              <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
+            </el-tooltip>
+          </template>
+        </el-table-column>
       </el-table>
+      <el-pagination
+        @size-change="handleSizeChange"
+        @current-change="handleCurrentChange"
+        :current-page="queryInfo.pagenum"
+        :page-sizes="[5, 10]"
+        :page-size="queryInfo.pagesize"
+        layout="total, sizes, prev, pager, next, jumper"
+        :total="totalCount"
+      ></el-pagination>
     </el-card>
   </div>
 </template>
@@ -34,9 +61,10 @@ export default {
       queryInfo: {
         query: '',
         pagenum: 1,
-        pagesize: 2
+        pagesize: 5
       },
-      userList: []
+      userList: [],
+      totalCount: 0
     };
   },
   created() {
@@ -49,12 +77,21 @@ export default {
         .then((response) => {
           const { data: res } = response;
           if (res.meta.status === 200) {
-            this.userList = res.data;
+            this.userList = res.data.users;
+            this.totalCount = res.data.total;
             console.log(this.userList);
           } else {
             return this.$message.error(res.meta.msg);
           }
         });
+    },
+    handleSizeChange(newSize) {
+      this.queryInfo.pagesize = newSize;
+      this.getUserList();
+    },
+    handleCurrentChange(nowPage) {
+      this.queryInfo.pagenum = nowPage;
+      this.getUserList();
     }
   }
 };
@@ -67,5 +104,6 @@ export default {
 }
 .el-table {
   margin-top: 15px;
+  margin-bottom: 15px;
 }
 </style>
