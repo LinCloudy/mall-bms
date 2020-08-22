@@ -17,7 +17,7 @@ export const httpMixin = {
       });
     },
     handleResponse(res, callback) {
-      if (res.meta.status === 200) {
+      if (res.meta.status === 200 || res.meta.status === 201) {
         this.$message({
           message: res.meta.msg ? res.meta.msg : '操作成功',
           type: 'success',

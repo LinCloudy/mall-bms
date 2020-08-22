@@ -24,7 +24,8 @@ import {
   Tooltip,
   Pagination,
   Upload,
-  MessageBox
+  MessageBox,
+  Dialog
 } from 'element-ui';
 
 Vue.use(Button);
@@ -50,6 +51,7 @@ Vue.use(Switch);
 Vue.use(Tooltip);
 Vue.use(Pagination);
 Vue.use(Upload);
+Vue.use(Dialog);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$msgbox = MessageBox;

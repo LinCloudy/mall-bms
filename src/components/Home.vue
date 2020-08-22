@@ -51,9 +51,7 @@
 </template>
 
 <script>
-import { httpMixin } from '@/mixins/globalMixin';
 export default {
-  mixins: [httpMixin],
   data() {
     return {
       menuList: [],

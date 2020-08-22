@@ -10,13 +10,19 @@
     <el-card>
       <el-row :gutter="20">
         <el-col :span="8">
-          <el-input placeholder="请输入内容" class="input-with-select">
-            <el-button slot="append" icon="el-icon-search"></el-button>
+          <el-input
+            placeholder="请输入内容"
+            v-model="queryInfo.query"
+            class="input-with-select"
+            clearable
+            @clear="handleClear"
+          >
+            <el-button slot="append" icon="el-icon-search" @click="handleSearch"></el-button>
           </el-input>
         </el-col>
 
         <el-col :span="4">
-          <el-button type="primary">Add</el-button>
+          <el-button type="primary" @click="handleUserDialog">Add</el-button>
         </el-col>
       </el-row>
 
@@ -28,7 +34,7 @@
         <el-table-column prop="role_name" label="角色" width="180"></el-table-column>
         <el-table-column prop="mg_state" label="状态" width="180">
           <template slot-scope="scope">
-            <el-switch v-model="scope.row.mg_state"></el-switch>
+            <el-switch v-model="scope.row.mg_state" @change="handleStateChanged(scope.row)"></el-switch>
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
@@ -51,11 +57,34 @@
         :total="totalCount"
       ></el-pagination>
     </el-card>
+
+    <el-dialog title="添加用户" :visible.sync="isUserDialogVisible" width="50%">
+      <el-form :model="userForm" :rules="userRules" ref="userForm">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="userForm.username"></el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="userForm.password"></el-input>
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="userForm.email"></el-input>
+        </el-form-item>
+        <el-form-item label="手机号" prop="mobile">
+          <el-input v-model="userForm.mobile"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="isUserDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="handleAddUser('userForm')">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
+import { httpMixin } from '@/mixins/globalMixin';
 export default {
+  mixins: [httpMixin],
   data() {
     return {
       queryInfo: {
@@ -64,13 +93,63 @@ export default {
         pagesize: 5
       },
       userList: [],
-      totalCount: 0
+      totalCount: 0,
+      isUserDialogVisible: false, // 控制用户对话框
+      userForm: {
+        username: '',
+        password: '',
+        email: '',
+        mobile: ''
+      },
+      userRules: {
+        username: [
+          {
+            required: true,
+            message: '请输入用户名',
+            trigger: ['blur']
+          },
+          {
+            min: 3,
+            max: 8,
+            message: '长度在 3 到 8 个字符',
+            trigger: ['change']
+          }
+        ],
+        password: [
+          {
+            required: true,
+            message: '请输入密码',
+            trigger: ['blur']
+          },
+          {
+            min: 3,
+            max: 8,
+            message: '长度在 3 到 8 个字符',
+            trigger: ['change']
+          }
+        ],
+        email: [
+          {
+            required: true,
+            message: '请输入邮箱',
+            trigger: ['change', 'blur']
+          }
+        ],
+        mobile: [
+          {
+            required: true,
+            message: '请输入手机号',
+            trigger: ['change', 'blur']
+          }
+        ]
+      }
     };
   },
   created() {
     this.getUserList();
   },
   methods: {
+    // 获取用户列表
     getUserList() {
       this.$http
         .get('users', { params: this.queryInfo })
@@ -92,6 +171,47 @@ export default {
     handleCurrentChange(nowPage) {
       this.queryInfo.pagenum = nowPage;
       this.getUserList();
+    },
+    // 修改用户状态
+    handleStateChanged(row) {
+      this.$http
+        .put(`users/${row.id}/state/${row.mg_state}`)
+        .then((response) => {
+          const { data: res } = response;
+          this.handleResponse(res, () => {
+            this.getUserList();
+          });
+        })
+        .catch((error) => {
+          row.mg_state = !row.mg_state;
+          this.showErrorMessage(error);
+        });
+    },
+    handleSearch() {
+      this.getUserList();
+    },
+    handleClear() {
+      this.getUserList();
+    },
+    handleUserDialog() {
+      this.isUserDialogVisible = true;
+    },
+    // 添加用户
+    handleAddUser(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          this.$http.post('users', this.userForm).then((response) => {
+            const { data: res } = response;
+            this.handleResponse(res, () => {
+              this.isUserDialogVisible = false;
+              this.getUserList();
+            });
+          });
+        } else {
+          console.log('error add!!');
+          return false;
+        }
+      });
     }
   }
 };
