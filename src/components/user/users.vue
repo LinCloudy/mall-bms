@@ -103,7 +103,6 @@ export default {
   font-size: 12px;
 }
 .el-table {
-  margin-top: 15px;
-  margin-bottom: 15px;
+  margin: 15px 0px;
 }
 </style>
