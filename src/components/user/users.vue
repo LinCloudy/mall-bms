@@ -22,7 +22,7 @@
         </el-col>
 
         <el-col :span="4">
-          <el-button type="primary" @click="handleUserDialog">Add</el-button>
+          <el-button type="primary" @click="handleAddUserDialog">Add</el-button>
         </el-col>
       </el-row>
 
@@ -38,8 +38,13 @@
           </template>
         </el-table-column>
         <el-table-column label="操作" width="180">
-          <template>
-            <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
+          <template slot-scope="scope">
+            <el-button
+              type="primary"
+              size="mini"
+              icon="el-icon-edit"
+              @click="handleEditUserDialog(scope.row)"
+            ></el-button>
             <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
             <el-tooltip effect="light" content="分配角色" placement="top" :enterable="false">
               <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
@@ -58,7 +63,12 @@
       ></el-pagination>
     </el-card>
 
-    <el-dialog title="添加用户" :visible.sync="isUserDialogVisible" width="50%">
+    <el-dialog
+      :title="dialogTitle"
+      :editType="editType"
+      :visible.sync="isUserDialogVisible"
+      width="50%"
+    >
       <el-form :model="userForm" :rules="userRules" ref="userForm">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="userForm.username"></el-input>
@@ -70,12 +80,12 @@
           <el-input v-model="userForm.email"></el-input>
         </el-form-item>
         <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="userForm.mobile"></el-input>
+          <el-input v-model="userForm.mobile" v-filterDigital></el-input>
         </el-form-item>
       </el-form>
-      <span slot="footer" class="dialog-footer">
+      <span slot="footer">
         <el-button @click="isUserDialogVisible = false">取 消</el-button>
-        <el-button type="primary" @click="handleAddUser('userForm')">确 定</el-button>
+        <el-button type="primary" @click="handleOperateUser('userForm')">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -96,6 +106,7 @@ export default {
       totalCount: 0,
       isUserDialogVisible: false, // 控制用户对话框
       userForm: {
+        id: '',
         username: '',
         password: '',
         email: '',
@@ -142,7 +153,9 @@ export default {
             trigger: ['change', 'blur']
           }
         ]
-      }
+      },
+      dialogTitle: '', // 用户对话框标题
+      editType: '' // 编辑类型 add-新增 modify-修改
     };
   },
   created() {
@@ -158,7 +171,9 @@ export default {
           if (res.meta.status === 200) {
             this.userList = res.data.users;
             this.totalCount = res.data.total;
-            console.log(this.userList);
+            console.log(
+              'userList:' + JSON.stringify(this.userList, null, 2)
+            );
           } else {
             return this.$message.error(res.meta.msg);
           }
@@ -193,25 +208,58 @@ export default {
     handleClear() {
       this.getUserList();
     },
-    handleUserDialog() {
+    handleAddUserDialog() {
       this.isUserDialogVisible = true;
+      this.dialogTitle = '添加用户';
+      this.editType = 'add';
     },
-    // 添加用户
-    handleAddUser(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$http.post('users', this.userForm).then((response) => {
-            const { data: res } = response;
-            this.handleResponse(res, () => {
-              this.isUserDialogVisible = false;
-              this.getUserList();
+    // 处理用户
+    handleOperateUser(formName) {
+      if (this.editType === 'add') {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.$http.post('users', this.userForm).then((response) => {
+              const { data: res } = response;
+              this.handleResponse(res, () => {
+                this.isUserDialogVisible = false;
+                this.$refs[formName].resetFields();
+                this.getUserList();
+              });
             });
-          });
-        } else {
-          console.log('error add!!');
-          return false;
-        }
-      });
+          } else {
+            return false;
+          }
+        });
+      } else if (this.editType === 'modify') {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            this.$http
+              .put(`users/${this.userForm.id}`, this.userForm)
+              .then((response) => {
+                const { data: res } = response;
+                this.handleResponse(res, () => {
+                  this.isUserDialogVisible = false;
+                  this.$refs[formName].resetFields();
+                  this.getUserList();
+                });
+              });
+          } else {
+            return false;
+          }
+        });
+      }
+    },
+    // 编辑用户users/:id
+    handleEditUserDialog(row) {
+      this.userForm.id = row.id;
+      this.userForm.username = row.username;
+      this.userForm.password = row.password;
+      this.userForm.email = row.email;
+      this.userForm.mobile = row.mobile;
+
+      this.isUserDialogVisible = true;
+      this.dialogTitle = '编辑用户';
+      this.editType = 'modify';
     }
   }
 };

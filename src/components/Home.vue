@@ -9,7 +9,6 @@
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <el-menu
           :default-active="defaultActive"
-          class="el-menu-vertical-demo"
           @open="handleOpen"
           @close="handleClose"
           background-color="#e3f2fe"
@@ -76,7 +75,9 @@ export default {
         const { data: res } = response;
         if (res.meta.status === 200) {
           this.menuList = res.data;
-          console.log(this.menuList);
+          console.log(
+            'menuList:' + JSON.stringify(this.menuList, null, 2)
+          );
         } else {
           return this.$message.error(res.meta.msg);
         }

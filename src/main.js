@@ -5,6 +5,11 @@ import './plugins/element.js';
 import axios from 'axios';
 // 导入全局样式
 import './assets/css/global.css';
+// 引入全局指令
+import * as directives from '@/directives';
+Object.keys(directives).forEach(key => {
+  Vue.directive(key, directives[key]);
+});
 
 // 配置请求根路径
 axios.defaults.baseURL = 'http://timemeetyou.com:8889/api/private/v1/';
