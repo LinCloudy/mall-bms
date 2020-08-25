@@ -2,9 +2,8 @@
   <div>
     <el-breadcrumb separator-class="el-icon-arrow-right">
       <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-      <el-breadcrumb-item>活动管理</el-breadcrumb-item>
-      <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-      <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+      <el-breadcrumb-item>用户管理</el-breadcrumb-item>
+      <el-breadcrumb-item>用户列表</el-breadcrumb-item>
     </el-breadcrumb>
 
     <el-card>
@@ -195,9 +194,9 @@ export default {
           if (res.meta.status === 200) {
             this.userList = res.data.users;
             this.totalCount = res.data.total;
-            console.log(
-              'userList:' + JSON.stringify(this.userList, null, 2)
-            );
+            // console.log(
+            //   'userList:' + JSON.stringify(this.userList, null, 2)
+            // );
           } else {
             return this.$message.error(res.meta.msg);
           }
