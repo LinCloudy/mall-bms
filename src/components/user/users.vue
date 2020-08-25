@@ -45,7 +45,12 @@
               icon="el-icon-edit"
               @click="handleEditUserDialog(scope.row)"
             ></el-button>
-            <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
+            <el-button
+              type="danger"
+              size="mini"
+              icon="el-icon-delete"
+              @click="handleDeleteUser(scope.row)"
+            ></el-button>
             <el-tooltip effect="light" content="分配角色" placement="top" :enterable="false">
               <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
             </el-tooltip>
@@ -67,24 +72,42 @@
       :title="dialogTitle"
       :editType="editType"
       :visible.sync="isUserDialogVisible"
+      :show-close="isShowDialogClose"
       width="50%"
     >
-      <el-form :model="userForm" :rules="userRules" ref="userForm">
-        <el-form-item label="用户名" prop="username">
-          <el-input v-model="userForm.username"></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input v-model="userForm.password"></el-input>
-        </el-form-item>
-        <el-form-item label="邮箱" prop="email">
-          <el-input v-model="userForm.email"></el-input>
-        </el-form-item>
-        <el-form-item label="手机号" prop="mobile">
-          <el-input v-model="userForm.mobile" v-filterDigital></el-input>
-        </el-form-item>
-      </el-form>
+      <div v-if="editType === 'add'">
+        <el-form :model="userForm" :rules="userRules" ref="userForm">
+          <el-form-item label="用户名" prop="username">
+            <el-input v-model="userForm.username"></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="userForm.password"></el-input>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="userForm.email"></el-input>
+          </el-form-item>
+          <el-form-item label="手机号" prop="mobile">
+            <el-input v-model="userForm.mobile" v-filterDigital></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div v-else-if="editType === 'modify'">
+        <el-form :model="userForm" :rules="userRules" ref="userForm">
+          <el-form-item label="用户名" prop="username">
+            <el-input v-model="userForm.username" disabled></el-input>
+          </el-form-item>
+          <el-form-item label="邮箱" prop="email">
+            <el-input v-model="userForm.email"></el-input>
+          </el-form-item>
+          <el-form-item label="手机号" prop="mobile">
+            <el-input v-model="userForm.mobile" v-filterDigital></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+
       <span slot="footer">
-        <el-button @click="isUserDialogVisible = false">取 消</el-button>
+        <el-button @click="cancelOperateUser('userForm')">取 消</el-button>
         <el-button type="primary" @click="handleOperateUser('userForm')">确 定</el-button>
       </span>
     </el-dialog>
@@ -155,7 +178,8 @@ export default {
         ]
       },
       dialogTitle: '', // 用户对话框标题
-      editType: '' // 编辑类型 add-新增 modify-修改
+      editType: '', // 编辑类型 add-新增 modify-修改
+      isShowDialogClose: false
     };
   },
   created() {
@@ -249,7 +273,7 @@ export default {
         });
       }
     },
-    // 编辑用户users/:id
+    // 编辑用户
     handleEditUserDialog(row) {
       this.userForm.id = row.id;
       this.userForm.username = row.username;
@@ -260,6 +284,29 @@ export default {
       this.isUserDialogVisible = true;
       this.dialogTitle = '编辑用户';
       this.editType = 'modify';
+    },
+    // 关闭处理对话框
+    // ？？？before-close函数拿不到this.$refs[formName].resetFields()
+    cancelOperateUser(formName) {
+      this.isUserDialogVisible = false;
+      this.$refs[formName].resetFields();
+    },
+    // 删除用户
+    handleDeleteUser(row) {
+      this.$msgbox
+        .confirm(`确定删除 ${row.username} 用户吗？`, '提示', {
+          distinguishCancelAndClose: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消'
+        })
+        .then(() => {
+          this.$http.delete(`users/${row.id}`).then((response) => {
+            const { data: res } = response;
+            this.handleResponse(res, () => {
+              this.getUserList();
+            });
+          });
+        });
     }
   }
 };
