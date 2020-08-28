@@ -14,10 +14,48 @@
       </el-row>
 
       <el-table :data="rolesList" style="width: 100%">
-        <el-table-column type="index" width="60"></el-table-column>
-        <el-table-column prop="roleName" label="角色名称" width="180"></el-table-column>
-        <el-table-column prop="roleDesc" label="角色描述" width="180"></el-table-column>
-        <el-table-column label="操作" width="180">
+        <el-table-column type="expand" width="60">
+          <template slot-scope="scope">
+            <!-- <pre>{{scope.row}}</pre> -->
+            <el-row
+              :class="['border-bottom', i1 === 0 ? 'border-top' : '']"
+              v-for="(item1, i1) in scope.row.children"
+              :key="item1.id"
+            >
+              <!-- 一级权限 -->
+              <el-col :span="5">
+                <el-tag>{{item1.authName}}</el-tag>
+                <i class="el-icon-caret-right"></i>
+              </el-col>
+
+              <!-- 二级权限 -->
+              <el-col :span="19">
+                <el-row
+                  :class="[ i2 === 0 ? '' : 'border-top']"
+                  v-for="(item2, i2) in item1.children"
+                  :key="item2.id"
+                >
+                  <el-col :span="6">
+                    <el-tag type="success">{{item2.authName}}</el-tag>
+                    <i class="el-icon-caret-right"></i>
+                  </el-col>
+                  <el-col :span="18">
+                    <el-tag
+                      :class="[ i3 === 0 ? '' : 'border-top']"
+                      v-for="(item3, i3) in item2.children"
+                      :key="item3.id"
+                      type="warning"
+                    >{{item3.authName}}</el-tag>
+                    <i class="el-icon-caret-right"></i>
+                  </el-col>
+                </el-row>
+              </el-col>
+            </el-row>
+          </template>
+        </el-table-column>
+        <el-table-column prop="roleName" label="角色名称" width="360"></el-table-column>
+        <el-table-column prop="roleDesc" label="角色描述" width="360"></el-table-column>
+        <el-table-column label="操作" width="360">
           <template slot-scope="scope">
             <el-button
               type="primary"
@@ -73,5 +111,17 @@ export default {
 .el-breadcrumb {
   margin-bottom: 15px;
   font-size: 12px;
+}
+
+.el-tag {
+  margin: 7px;
+}
+
+.border-top {
+  border-top: 1px solid #eee;
+}
+
+.border-bottom {
+  border-bottom: 1px solid #eee;
 }
 </style>
