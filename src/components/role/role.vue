@@ -18,35 +18,45 @@
           <template slot-scope="scope">
             <!-- <pre>{{scope.row}}</pre> -->
             <el-row
-              :class="['border-bottom', i1 === 0 ? 'border-top' : '']"
+              :class="['border-bottom', i1 === 0 ? 'border-top' : '', 'vertical-center']"
               v-for="(item1, i1) in scope.row.children"
               :key="item1.id"
             >
               <!-- 一级权限 -->
               <el-col :span="5">
-                <el-tag>{{item1.authName}}</el-tag>
+                <el-tag
+                  closable
+                  @close="handleDeleteRightById(scope.row, item1.id)"
+                >{{item1.authName}}</el-tag>
                 <i class="el-icon-caret-right"></i>
               </el-col>
 
               <!-- 二级权限 -->
               <el-col :span="19">
                 <el-row
-                  :class="[ i2 === 0 ? '' : 'border-top']"
+                  :class="[ i2 === 0 ? '' : 'border-top', 'vertical-center']"
                   v-for="(item2, i2) in item1.children"
                   :key="item2.id"
                 >
                   <el-col :span="6">
-                    <el-tag type="success">{{item2.authName}}</el-tag>
+                    <el-tag
+                      type="success"
+                      closable
+                      @close="handleDeleteRightById(scope.row, item2.id)"
+                    >{{item2.authName}}</el-tag>
                     <i class="el-icon-caret-right"></i>
                   </el-col>
                   <el-col :span="18">
+                    <!-- 三级权限 -->
+
                     <el-tag
                       :class="[ i3 === 0 ? '' : 'border-top']"
                       v-for="(item3, i3) in item2.children"
                       :key="item3.id"
                       type="warning"
+                      closable
+                      @close="handleDeleteRightById(scope.row, item3.id)"
                     >{{item3.authName}}</el-tag>
-                    <i class="el-icon-caret-right"></i>
                   </el-col>
                 </el-row>
               </el-col>
@@ -80,7 +90,9 @@
 </template>
 
 <script>
+import { httpMixin } from '@/mixins/globalMixin';
 export default {
+  mixins: [httpMixin],
   data() {
     return {
       rolesList: []
@@ -100,7 +112,28 @@ export default {
     },
     handleAddRoleDialog() {},
     handleEditRoleDialog() {},
-    handleDeleteRole() {}
+    handleDeleteRole() {},
+    // 删除权限
+    handleDeleteRightById(row, targetId) {
+      this.$msgbox
+        .confirm('确定删除当前权限？', '提示', {
+          distinguishCancelAndClose: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        })
+        .then(() => {
+          this.$http
+            .delete(`roles/${row.id}/rights/${targetId}`)
+            .then((response) => {
+              const { data: res } = response;
+              this.handleResponse(res, () => {
+                // this.getRoleList();
+                row.children = res.data;
+              });
+            });
+        });
+    }
   },
   created() {
     this.getRoleList();
@@ -123,5 +156,10 @@ export default {
 
 .border-bottom {
   border-bottom: 1px solid #eee;
+}
+
+.vertical-center {
+  display: flex;
+  align-items: center;
 }
 </style>
