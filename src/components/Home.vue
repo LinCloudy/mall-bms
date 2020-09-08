@@ -75,9 +75,9 @@ export default {
         const { data: res } = response;
         if (res.meta.status === 200) {
           this.menuList = res.data;
-          console.log(
-            'menuList:' + JSON.stringify(this.menuList, null, 2)
-          );
+          // console.log(
+          //   'menuList:' + JSON.stringify(this.menuList, null, 2)
+          // );
         } else {
           return this.$message.error(res.meta.msg);
         }

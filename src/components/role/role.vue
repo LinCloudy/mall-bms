@@ -48,7 +48,6 @@
                   </el-col>
                   <el-col :span="18">
                     <!-- 三级权限 -->
-
                     <el-tag
                       :class="[ i3 === 0 ? '' : 'border-top']"
                       v-for="(item3, i3) in item2.children"
@@ -80,12 +79,40 @@
               @click="handleDeleteRole(scope.row)"
             ></el-button>
             <el-tooltip effect="light" content="分配权限" placement="top" :enterable="false">
-              <el-button type="warning" size="mini" icon="el-icon-setting"></el-button>
+              <el-button
+                type="warning"
+                size="mini"
+                icon="el-icon-setting"
+                @click="handleDistributeRight(scope.row)"
+              ></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
     </el-card>
+
+    <!-- 分配权限对话框 -->
+    <el-dialog
+      title="分配权限"
+      :visible.sync="isDistributeRightDialogVisible"
+      width="50%"
+      @close="handleDistributeRightDialogClose"
+    >
+      <!-- 权限树 -->
+      <el-tree
+        :data="rightsList"
+        :props="rightsTreeProps"
+        node-key="id"
+        show-checkbox
+        default-expand-all
+        :default-checked-keys="defaultCheckedNodes"
+      ></el-tree>
+
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="isDistributeRightDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="isDistributeRightDialogVisible = false">确 定</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -95,7 +122,15 @@ export default {
   mixins: [httpMixin],
   data() {
     return {
-      rolesList: []
+      rolesList: [], // 角色列表
+      rightsList: [], // 权限列表
+      rightsTreeProps: {
+        // 权限树属性绑定对象
+        label: 'authName',
+        children: 'children'
+      },
+      defaultCheckedNodes: [], // 默认选中树节点
+      isDistributeRightDialogVisible: false
     };
   },
   methods: {
@@ -133,6 +168,38 @@ export default {
               });
             });
         });
+    },
+    // 分配权限
+    handleDistributeRight(row) {
+      this.$http
+        .get('rights/tree')
+        .then((response) => {
+          const { data: res } = response;
+          if (res.meta.status === 200) {
+            this.rightsList = res.data;
+          } else {
+            this.rightsList = [];
+          }
+          // console.log(JSON.stringify(res, null, 2));
+        })
+        .then(() => {
+          this.getThirdLeafNodes(row, this.defaultCheckedNodes);
+          this.isDistributeRightDialogVisible = true;
+        });
+    },
+    // 获取三级权限节点
+    getThirdLeafNodes(node, array) {
+      if (!node.children) {
+        return array.push(node.id);
+      }
+
+      node.children.forEach((item) => {
+        this.getThirdLeafNodes(item, array);
+      });
+    },
+    // 关闭对话框
+    handleDistributeRightDialogClose() {
+      this.defaultCheckedNodes = [];
     }
   },
   created() {
